@@ -1,1 +1,1 @@
-This directory includes dotfiles.
+This directory includes dotfile.
