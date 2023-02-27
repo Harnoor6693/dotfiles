@@ -28,7 +28,7 @@ shopt -s checkwinsize
 #shopt -s globstar
 
 # make less more friendly for non-text input files, see lesspipe(1)
-#[ -x /usr/bin/lesspipe ] && eval "$(SHELL=/bin/sh lesspipe)"
+[ -x /usr/bin/lesspipe ] && eval "$(SHELL=/bin/sh lesspipe)"
 
 # set variable identifying the chroot you work in (used in the prompt below)
 if [ -z "${debian_chroot:-}" ] && [ -r /etc/debian_chroot ]; then
@@ -37,13 +37,13 @@ fi
 
 # set a fancy prompt (non-color, unless we know we "want" color)
 case "$TERM" in
-    xterm-color) color_prompt=yes;;
+    xterm-color|*-256color) color_prompt=yes;;
 esac
 
 # uncomment for a colored prompt, if the terminal has the capability; turned
 # off by default to not distract the user: the focus in a terminal window
 # should be on the output of commands, not on the prompt
-force_color_prompt=yes
+#force_color_prompt=yes
 
 if [ -n "$force_color_prompt" ]; then
     if [ -x /usr/bin/tput ] && tput setaf 1 >&/dev/null; then
@@ -57,7 +57,7 @@ if [ -n "$force_color_prompt" ]; then
 fi
 
 if [ "$color_prompt" = yes ]; then
-    PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w \$\[\033[00m\] '
+    PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '
 else
     PS1='${debian_chroot:+($debian_chroot)}\u@\h:\w\$ '
 fi
@@ -76,23 +76,25 @@ esac
 if [ -x /usr/bin/dircolors ]; then
     test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
     alias ls='ls --color=auto'
-    export LS_COLORS=$LS_COLORS:'ow=01;34;40:'
     #alias dir='dir --color=auto'
     #alias vdir='vdir --color=auto'
 
     alias grep='grep --color=auto'
     alias fgrep='fgrep --color=auto'
     alias egrep='egrep --color=auto'
-    alias sudo='sudo -H'
 fi
 
 # colored GCC warnings and errors
 #export GCC_COLORS='error=01;31:warning=01;35:note=01;36:caret=01;32:locus=01:quote=01'
 
 # some more ls aliases
-#alias ll='ls -l'
-#alias la='ls -A'
-#alias l='ls -CF'
+alias ll='ls -alF'
+alias la='ls -A'
+alias l='ls -CF'
+
+# Add an "alert" alias for long running commands.  Use like so:
+#   sleep 10; alert
+alias alert='notify-send --urgency=low -i "$([ $? = 0 ] && echo terminal || echo error)" "$(history|tail -n1|sed -e '\''s/^\s*[0-9]\+\s*//;s/[;&|]\s*alert$//'\'')"'
 
 # Alias definitions.
 # You may want to put all your additions into a separate file like
@@ -114,61 +116,43 @@ if ! shopt -oq posix; then
   fi
 fi
 
-# RETROPIE PROFILE START
-# Thanks to http://blog.petrockblock.com/forums/topic/retropie-mushroom-motd/#post-3965
+##-----------------------------------------------------
+## synth-shell-greeter.sh
+#if [ -f /home/harnoor/.config/synth-shell/synth-shell-greeter.sh ] && [ -n "$( echo $- | grep i )" ]; then
+#	source /home/harnoor/.config/synth-shell/synth-shell-greeter.sh
+#fi
 
-function retropie_welcome() {
-    local upSeconds="$(/usr/bin/cut -d. -f1 /proc/uptime)"
-    local secs=$((upSeconds%60))
-    local mins=$((upSeconds/60%60))
-    local hours=$((upSeconds/3600%24))
-    local days=$((upSeconds/86400))
-    local UPTIME=$(printf "%d days, %02dh%02dm%02ds" "$days" "$hours" "$mins" "$secs")
+##-----------------------------------------------------
+## synth-shell-prompt.sh
+if [ -f /home/harnoor/.config/synth-shell/synth-shell-prompt.sh ] && [ -n "$( echo $- | grep i )" ]; then
+	source /home/harnoor/.config/synth-shell/synth-shell-prompt.sh
+fi
 
-    # calculate rough CPU and GPU temperatures:
-    local cpuTempC
-    local cpuTempF
-    local gpuTempC
-    local gpuTempF
-    if [[ -f "/sys/class/thermal/thermal_zone0/temp" ]]; then
-        cpuTempC=$(($(cat /sys/class/thermal/thermal_zone0/temp)/1000)) && cpuTempF=$((cpuTempC*9/5+32))
-    fi
+##-----------------------------------------------------
+## better-ls
+if [ -f /home/harnoor/.config/synth-shell/better-ls.sh ] && [ -n "$( echo $- | grep i )" ]; then
+	source /home/harnoor/.config/synth-shell/better-ls.sh
+fi
 
-    if [[ -f "/opt/vc/bin/vcgencmd" ]]; then
-        if gpuTempC=$(/opt/vc/bin/vcgencmd measure_temp); then
-            gpuTempC=${gpuTempC:5:2}
-            gpuTempF=$((gpuTempC*9/5+32))
-        else
-            gpuTempC=""
-        fi
-    fi
+##-----------------------------------------------------
+## alias
+if [ -f /home/harnoor/.config/synth-shell/alias.sh ] && [ -n "$( echo $- | grep i )" ]; then
+	source /home/harnoor/.config/synth-shell/alias.sh
+fi
 
-    local df_out=()
-    local line
-    while read line; do
-        df_out+=("$line")
-    done < <(df -h /)
+##-----------------------------------------------------
+## better-history
+if [ -f /home/harnoor/.config/synth-shell/better-history.sh ] && [ -n "$( echo $- | grep i )" ]; then
+	source /home/harnoor/.config/synth-shell/better-history.sh
+fi
 
-echo "
-   .~~.   .~~.    $(tput setaf 6)$(date +"%A, %e %B %Y, %r")$(tput setaf 1)
-  '. \ ' ' / .'   $(tput setaf 2)$(uname -srmo)$(tput setaf 1)
-   .~ .~~~..~.
-  : .~.'~'.~. :   $(tput setaf 3)${df_out[0]}$(tput setaf 2)
- ~ ( o ) ( o ) ~  $(tput setaf 7)${df_out[1]}$(tput setaf 2)
-( : '~'.~.'~' : ) Uptime.............: ${UPTIME}
- ~ .~       ~. ~  Memory.............: $(grep MemFree /proc/meminfo | awk {'print $2'})kB (Free) / $(grep MemTotal /proc/meminfo | awk {'print $2'})kB (Total)$(tput setaf 7)
-  (  $(tput setaf 4) |   | $(tput setaf 7)  )  $(tput setaf 2) Running Processes..: $(ps ax | wc -l | tr -d " ")$(tput setaf 7)
-  '~         ~'  $(tput setaf 2) IP Address.........: $(ip route get 8.8.8.8 2>/dev/null | head -1 | cut -d' ' -f7) $(tput setaf 7)
-    *--~~~--*    $(tput setaf 2) Temperature........: CPU: $cpuTempC°C/$cpuTempF°F GPU: $gpuTempC°C/$gpuTempF°F
-                 $(tput setaf 7) The RetroPie Project, http://www.petrockblock.com
+neofetch
 
-$(tput sgr0)"
-}
+##-----------------------------------------------------
+## custom user defined alises @harnoor
 
-retropie_welcome
+# Sending magic packet to Harnoor PC to turn it on 192.168.2.100
+alias harnoor-desktop='wakeonlan D8:BB:C1:08:1E:EB'
 
-# RETROPIE PROFILE END
-
-export LESS='-R'
-export LESSOPEN='|~/.lessfilter %s'
-
+# Testing if Harnoor PC is up and runngin
+alias check-harnoor-pc='python3 /home/harnoor/my-scripts/isComputerUp.py'
